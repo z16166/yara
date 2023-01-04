@@ -758,6 +758,125 @@ define_function(to_string_base)
   return_string(&str);
 }
 
+define_function(ip_in_range)
+{
+  SIZED_STRING* ip = sized_string_argument(1);
+  SIZED_STRING* ip_rangeA = sized_string_argument(2);
+  SIZED_STRING* ip_rangeB = sized_string_argument(3);
+  int a, b, c, d;
+  int ip_addr;
+
+  if (ip->length > 5 &&
+      4 == sscanf(ip->c_string, "%d.%d.%d.%d", &a, &b, &c, &d)
+      &&(0 <= a && a <= 255 && 0 <= b && b <= 255 && 0 <= c && c <= 255 &&
+        0 <= d && d <= 255))
+  {
+      ip_addr = (a << 24) + (b << 16) + (c << 8) + d;
+    }
+  else
+  {
+    return_integer(0);
+  }
+
+  int a1, b1, c1, d1;
+  int a2, b2, c2, d2;
+  int ip_range1;
+  int ip_range2;
+  if (ip_rangeA->length > 5 &&
+      4 == sscanf(
+               ip_rangeA->c_string,
+               "%d.%d.%d.%d",
+               &a1,
+               &b1,
+               &c1,
+               &d1)
+      &&ip_rangeB->length > 5 &&
+      4 == sscanf(
+               ip_rangeB->c_string,
+               "%d.%d.%d.%d",
+               &a2,
+               &b2,
+               &c2,
+               &d2)
+      && (0 <= a1 && a1 <= 255 && 0 <= b1 && b1 <= 255 && 0 <= c1 && c1 <= 255 &&
+        0 <= d1 && d1 <= 255 && 0 <= a2 && a2 <= 255 && 0 <= b2 && b2 <= 255 &&
+        0 <= c2 && c2 <= 255 && 0 <= d2 && d2 <= 255))
+    {
+      ip_range1 = (a1 << 24) + (b1 << 16) + (c1 << 8) + d1;
+      ip_range2 = (a2 << 24) + (b2 << 16) + (c2 << 8) + d2;
+    }
+    else
+    {
+      return_integer(0);
+    }
+
+  if (ip_addr >= ip_range1 && ip_addr <= ip_range2)
+  {
+    return_integer(1);
+  }
+  return_integer(0);
+}
+
+define_function(ip_in_sub_network)
+{
+  SIZED_STRING* ip = sized_string_argument(1);
+  SIZED_STRING* ip_subNet = sized_string_argument(2);
+
+  int a, b, c, d;
+  int ip_addr;
+  if (ip->length > 5 &&
+      4 == sscanf(ip->c_string, "%d.%d.%d.%d", &a, &b, &c, &d) &&
+      (0 <= a && a <= 255 && 0 <= b && b <= 255 && 0 <= c && c <= 255 &&
+       0 <= d && d <= 255))
+  {
+    ip_addr = (a << 24) + (b << 16) + (c << 8) + d;
+  }
+  else
+  {
+    return_integer(0);
+  }
+
+  int a1, b1, c1, d1;
+  int sub;
+  int ip_range1;
+
+  int scan_ret = sscanf(
+      ip_subNet->c_string, "%d.%d.%d.%d/%d", &a1, &b1, &c1, &d1, &sub);
+  if (ip_subNet->length > 5 && 5 == scan_ret
+      && (0 <= a1 && a1 <= 255 && 0 <= b1 && b1 <= 255 && 0 <= c1 && c1 <= 255 &&
+        0 <= d1 && d1 <= 255 && 0 <= sub && sub <= 32))
+  {
+      ip_range1 = (a1 << 24) + (b1 << 16) + (c1 << 8) + d1;
+  }
+  else
+  {
+    return_integer(0);
+  }
+
+  if ((ip_addr >> (32-sub)) == (ip_range1 >> (32-sub)))
+  {
+    return_integer(1);
+  }
+  return_integer(0);
+}
+
+define_function(fnmatch)
+{
+  SIZED_STRING* str = sized_string_argument(1);
+  SIZED_STRING* mat = sized_string_argument(2);
+
+
+  int ret = fnmatch(0, mat->c_string, str->c_string);
+  if (ret == 0)
+  {
+    return_integer(1);
+  }
+  else
+  {
+    return_integer(0);
+  }
+}
+
 begin_declarations
   declare_float("MEAN_BYTES");
   declare_function("in_range", "fff", "i", in_range);
@@ -783,6 +902,9 @@ begin_declarations
   declare_function("mode", "", "i", mode_global);
   declare_function("to_string", "i", "s", to_string);
   declare_function("to_string", "ii", "s", to_string_base);
+  declare_function("ip_in_range", "sss", "i", ip_in_range);
+  declare_function("ip_in_sub_network", "ss", "i", ip_in_sub_network);
+  declare_function("fnmatch", "ss", "i", fnmatch);  
 end_declarations
 
 int module_initialize(YR_MODULE* module)
