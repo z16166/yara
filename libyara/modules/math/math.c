@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdlib.h>
 #include <math.h>
+#include <fnmatch.h>
 #include <yara/mem.h>
 #include <yara/modules.h>
 #include <yara/strutils.h>
@@ -860,7 +861,7 @@ define_function(ip_in_sub_network)
   return_integer(0);
 }
 
-define_function(fnmatch)
+define_function(fnmatch_yara)
 {
   SIZED_STRING* str = sized_string_argument(1);
   SIZED_STRING* mat = sized_string_argument(2);
@@ -904,7 +905,7 @@ begin_declarations
   declare_function("to_string", "ii", "s", to_string_base);
   declare_function("ip_in_range", "sss", "i", ip_in_range);
   declare_function("ip_in_sub_network", "ss", "i", ip_in_sub_network);
-  declare_function("fnmatch", "ss", "i", fnmatch);  
+  declare_function("fnmatch", "ss", "i", fnmatch_yara);  
 end_declarations
 
 int module_initialize(YR_MODULE* module)
