@@ -866,7 +866,7 @@ define_function(fnmatch)
   SIZED_STRING* mat = sized_string_argument(2);
 
 
-  int ret = fnmatch(0, mat->c_string, str->c_string);
+  int ret = fnmatch(mat->c_string, str->c_string, 0);
   if (ret == 0)
   {
     return_integer(1);
